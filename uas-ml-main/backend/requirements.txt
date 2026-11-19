@@ -1,0 +1,6 @@
+opencv-python-headless==5.1.0.95
+scikit-learn
+fastapi
+uvicorn
+tensorflow-cpu
+numpy
