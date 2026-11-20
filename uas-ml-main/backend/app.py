@@ -3,11 +3,10 @@ import os
 
 import cv2
 import numpy as np
-import tensorflow as tf
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
-from cnn import LABEL_PATH, MODEL_PATH, UKURAN, bersihkan
+from ringan import LABEL_PATH, UKURAN, bersihkan, muat_bobot, prediksi_batch
 
 ORIGINS = [
   o.strip()
@@ -25,12 +24,13 @@ app.add_middleware(
   allow_headers=["*"],
 )
 
-model = tf.keras.models.load_model(MODEL_PATH)
+bobot = muat_bobot()
 
 with open(LABEL_PATH, "r", encoding="utf-8") as f:
   kelas = json.load(f)["kelas"]
 
 
+@app.get("/")
 @app.get("/api")
 def home():
   return {"message": "Backend klasifikasi CNN aktif"}
@@ -65,7 +65,7 @@ async def predict(file: UploadFile = File(...)):
 
   X = img_resize[np.newaxis, ..., np.newaxis]
 
-  probabilitas = model.predict(X, verbose=0)[0]
+  probabilitas = prediksi_batch(bobot, X)[0]
 
   urutan = np.argsort(probabilitas)[::-1][:3]
 
